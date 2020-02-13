@@ -1,0 +1,15 @@
+# kubernetes-deploy-action
+This repo accepts a helm value file, chart title, and image tag for the clevyr-cloud 
+helm chart and updates the resource in kubernetes.
+
+## Prerequisites
+In order for this repo to properly 
+
+## Environment Variables
+
+| Variable      | Details                                                                                 | Example                                                                                                                                                                                                                                                                                                                                                                    |
+|---------------|-----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| CHART_TITLE   | The chart that was deployed associated with the resource stack that is getting updated. | `clevyr-com`                                                                                                                                                                                                                                                                                                                                                               |
+| REPO_URL      | The docker repository to pull for the deployment image.                                 | `396720968759.dkr.ecr.us-east-2.amazonaws.com/clevyr-com/app`                                                                                                                                                                                                                                                                                                              |
+| REPO_TAG      | The tag of the image to pull for the deployment image.                                  | `latest`                                                                                                                                                                                                                                                                                                                                                                   |
+| KUBECONFIGB64 | Base64 encoded version of the kube_config needed to connect to the cluster.             | `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=` |
