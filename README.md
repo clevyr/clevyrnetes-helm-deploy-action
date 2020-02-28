@@ -15,3 +15,4 @@ In order for this repo to properly
 | GCLOUD_CLUSTER_NAME | The cluster name to activate credentials for.                                           | `motus-cluster`                               |
 | GCLOUD_REGION       | The location of the cluster.                                                            | `us-central1`                                 |
 | GCLOUD_KEY_FILE     | The JSON of the key-file to authenticate to Google Cloud.                               | `{"type":"service_account","project_id":...}` |
+| KUBE_NAMESPACE      | The namespace to deploy to.                                                             | `clevyr-com-dev`                              |

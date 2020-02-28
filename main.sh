@@ -13,5 +13,6 @@ gcloud container clusters get-credentials \
 # Push update to application through helm
 kubectl set image \
     deployments/$CHART_TITLE \
-    $CHART_TITLE=$REPO_URL:$REPO_TAG
+    $CHART_TITLE=$REPO_URL:$REPO_TAG \
+    --namespace $KUBE_NAMESPACE
 
