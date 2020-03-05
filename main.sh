@@ -16,5 +16,5 @@ gcloud container clusters get-credentials \
 # Push update to application through kubectl
 kubectl set image \
     deployments/${CHART_TITLE:-app} \
-    ${CHART_TITLE:-app}=$REPO_URL:$REPO_TAG \
+    ${POD_TITLE:-app}=$REPO_URL:$REPO_TAG \
     --namespace $KUBE_NAMESPACE
