@@ -7,6 +7,7 @@ gcloud auth activate-service-account \
     --key-file - <<< $GCLOUD_KEY_FILE
 
 project_id="$(jq -r .project_id <<< $GCLOUD_KEY_FILE)"
+project_id=${GCLOUD_GKE_PROJECT:-$project_id}
 
 gcloud container clusters get-credentials \
     $GCLOUD_CLUSTER_NAME \
