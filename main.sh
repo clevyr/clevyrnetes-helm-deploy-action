@@ -15,7 +15,7 @@ gcloud container clusters get-credentials \
     --project "$project_id"
 
 # Push update to application through kubectl
-kubectl -n "$KUBE_NAMESPACE" set image "deployments/$KUBE_NAMESPACE" "*=$REPO_URL:$REPO_TAG"
+kubectl -n "$KUBE_NAMESPACE" set image "deployments/$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}" "*=$REPO_URL:$REPO_TAG"
 
 if ! kubectl -n "$KUBE_NAMESPACE" rollout status --timeout="${DEPLOY_TIMEOUT:-2m}" deployment "$KUBE_NAMESPACE"; then
     kubectl -n "$KUBE_NAMESPACE" rollout undo deployment "$KUBE_NAMESPACE"
