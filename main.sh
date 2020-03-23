@@ -14,10 +14,13 @@ gcloud container clusters get-credentials \
     --region "$GCLOUD_REGION" \
     --project "$project_id"
 
-# Push update to application through kubectl
-kubectl -n "$KUBE_NAMESPACE" set image "deployments/$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}" "*=$REPO_URL:$REPO_TAG"
+# Set the deployment id to upgrade
+deployment="$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}"
 
-if ! kubectl -n "$KUBE_NAMESPACE" rollout status --timeout="${DEPLOY_TIMEOUT:-2m}" deployment "$KUBE_NAMESPACE"; then
-    kubectl -n "$KUBE_NAMESPACE" rollout undo deployment "$KUBE_NAMESPACE"
+# Push update to application through kubectl
+kubectl -n "$KUBE_NAMESPACE" set image "deployments/$deployment" "*=$REPO_URL:$REPO_TAG"
+
+if ! kubectl -n "$KUBE_NAMESPACE" rollout status --timeout="${DEPLOY_TIMEOUT:-2m}" deployment "$deployment"; then
+    kubectl -n "$KUBE_NAMESPACE" rollout undo deployment "$deployment"
     exit 1
 fi
