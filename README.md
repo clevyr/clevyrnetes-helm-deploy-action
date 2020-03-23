@@ -17,3 +17,4 @@ In order for this repo to properly
 | GCLOUD_KEY_FILE     | The JSON of the key-file to authenticate to Google Cloud.                               | `{"type":"service_account","project_id":...}` |
 | KUBE_NAMESPACE      | The namespace to deploy to.                                                             | `clevyr-com-dev`                              |
 | DEPLOY_TIMEOUT      | The timeout that is passed to `kubectl rollout`.                                        | `2m`                                          |
+| DEPLOYMENT_MODIFIER | The optional tag for the deployment to modify                                           | `nil`
