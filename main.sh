@@ -17,6 +17,9 @@ gcloud container clusters get-credentials \
 # Set the deployment id to upgrade
 deployment="$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}"
 
+pwd
+ls
+
 # Push update to application through kubectl
 kubectl -n "$KUBE_NAMESPACE" set image "deployments/$deployment" "*=$REPO_URL:$REPO_TAG"
 
