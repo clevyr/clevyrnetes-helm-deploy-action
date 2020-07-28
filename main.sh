@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 
+HELM_URL="https://helm.clevyr.cloud"
+
 set -euxo pipefail
 
-# Create a file with the Google Cloud Auth Key File
+# Activate gcloud auth using specified by GCLOUD_KEY_FILE
 gcloud auth activate-service-account \
     --key-file - <<< "$GCLOUD_KEY_FILE"
 
+# Set the project id based on the key file provided, or use the provided project id
 project_id="$(jq -r .project_id <<< "$GCLOUD_KEY_FILE")"
 project_id=${GCLOUD_GKE_PROJECT:-$project_id}
 
+# Select kubernetes cluster specified by GCLOUD_CLUSTER_NAME
 gcloud container clusters get-credentials \
     "$GCLOUD_CLUSTER_NAME" \
     --region "$GCLOUD_REGION" \
@@ -17,13 +21,17 @@ gcloud container clusters get-credentials \
 # Set the deployment id to upgrade
 deployment="$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}"
 
-pwd
-ls
+# Add custom helm repo
+helm repo add --username "$HELM_USER" --password "$HELM_PASS" clevyr "$HELM_URL"
 
-# Push update to application through kubectl
-kubectl -n "$KUBE_NAMESPACE" set image "deployments/$deployment" "*=$REPO_URL:$REPO_TAG"
+# Update helm deployment
+helm upgrade "$deployment" clevyr/"$(yq -r '.app.framework' kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml)"-chart \
+    -f kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml \
+    --set app.image.url="$REPO_URL" \
+    --set app.image.tag="$REPO_TAG"
 
-if ! kubectl -n "$KUBE_NAMESPACE" rollout status --timeout="${DEPLOY_TIMEOUT:-2m}" deployment "$deployment"; then
-    kubectl -n "$KUBE_NAMESPACE" rollout undo deployment "$deployment"
-    exit 1
+# Update redirect deployment (if needed)
+if [[ $(yq '.redirects | length' kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml) -gt 0 ]]; then
+  helm upgrade "$deployment"-redirects clevyr/redirect-helm-chart \
+      -f kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml
 fi
