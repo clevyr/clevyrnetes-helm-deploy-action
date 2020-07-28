@@ -26,9 +26,10 @@ deployment="$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}"
 
 # Add custom helm repo
 helm repo add --username "$HELM_USER" --password "$HELM_PASS" clevyr "$HELM_URL"
+helm repo update
 
 # Update helm deployment
-helm upgrade "$deployment" clevyr/"$(yq -r '.app.framework' kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml)"-chart \
+helm upgrade "$deployment" clevyr/"$(cat kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml | yq -r '.app.framework' -)"-chart \
     -f kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml \
     --set app.image.url="$REPO_URL" \
     --set app.image.tag="$REPO_TAG"
