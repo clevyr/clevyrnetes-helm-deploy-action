@@ -29,13 +29,13 @@ helm repo add --username "$HELM_USER" --password "$HELM_PASS" clevyr "$HELM_URL"
 helm repo update
 
 # Update helm deployment
-helm upgrade "$deployment" clevyr/"$(yq r kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml '.app.framework')"-chart \
+helm upgrade "$deployment" clevyr/"$(yq r kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml 'app.framework')"-chart \
     -f kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml \
     --set app.image.url="$REPO_URL" \
     --set app.image.tag="$REPO_TAG"
 
 # Update redirect deployment (if needed)
-if [[ $(yq r kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml '.redirects | length') -gt 0 ]]; then
+if [[ $(yq r kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml 'redirects | length') -gt 0 ]]; then
   helm upgrade "$deployment"-redirects clevyr/redirect-helm-chart \
       -f kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml
 fi
