@@ -4,6 +4,9 @@ HELM_URL="https://helm.clevyr.cloud"
 
 set -euxo pipefail
 
+# Install yq for parsing helm.yaml
+brew install yq
+
 # Activate gcloud auth using specified by GCLOUD_KEY_FILE
 gcloud auth activate-service-account \
     --key-file - <<< "$GCLOUD_KEY_FILE"
