@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
-# Set helm url based on default, or use provided HELM_URL variable
-default_helm_url="https://helm.clevyr.cloud"
-HELM_URL=${HELM_URL:-$default_helm_url}
+start_update() {
+  printf "\nUpdating %s chart\n\n" "$1"
+}
+
+end_update() {
+  printf "\nUpdate complete\n\n"
+}
 
 # Install yq for parsing helm.yaml
 brew install yq
@@ -12,6 +16,10 @@ set -euxo pipefail
 # Activate gcloud auth using specified by GCLOUD_KEY_FILE
 gcloud auth activate-service-account \
     --key-file - <<< "$GCLOUD_KEY_FILE"
+
+# Set helm url based on default, or use provided HELM_URL variable
+default_helm_url="https://helm.clevyr.cloud"
+HELM_URL=${HELM_URL:-$default_helm_url}
 
 # Set the project id based on the key file provided, or use the provided project id
 project_id="$(jq -r .project_id <<< "$GCLOUD_KEY_FILE")"
@@ -31,15 +39,19 @@ helm repo add --username "$HELM_USER" --password "$HELM_PASS" clevyr "$HELM_URL"
 helm repo update
 
 # Update helm deployment
+start_update main
 helm upgrade "$deployment" clevyr/"$(yq r kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml 'app.framework')"-chart \
     -n "$KUBE_NAMESPACE" \
     -f kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml \
     --set app.image.url="$REPO_URL" \
     --set app.image.tag="$REPO_TAG"
+end_update
 
 # Update redirect deployment (if needed)
 if [[ $(yq r kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml --length 'redirects') -gt 0 ]]; then
+  start_update redirect
   helm upgrade "$deployment"-redirects clevyr/redirect-helm-chart \
       -n "$KUBE_NAMESPACE" \
       -f kubernetes/"${KUBE_NAMESPACE##*-}"/helm.yaml
+  end_update
 fi
