@@ -1,5 +1,5 @@
-name: "Kubernetes Helm Action"
-description: "Updates a Clevyr-Cloud Helm Chart"
+name: "Clevyrnetes Helm Deploy Action"
+description: "Updates a Clevyrnetes Helm Chart"
 author: "Keith"
 runs:
   using: "node12"
