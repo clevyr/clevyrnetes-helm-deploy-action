@@ -48,7 +48,7 @@ gcloud container clusters get-credentials \
 deployment="$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}"
 
 # Add custom helm repo
-helm repo add --username "$HELM_USER" --password "$HELM_PASS" clevyr "$HELM_URL"
+helm repo add clevyr "$HELM_URL"
 helm repo update
 
 # Wait to make sure yq is installed
