@@ -34,6 +34,10 @@ project_id="${GCLOUD_GKE_PROJECT:-$project_id}"
 environment="${KUBE_NAMESPACE##*-}"
 environment="${ENV_LABEL:-$environment}"
 
+# Set the base folder that contains environment configuration, or use the provided CONFIG_FOLDER variable
+config_folder="deployment"
+config_folder="${CONFIG_FOLDER:-$config_folder}"
+
 # Select kubernetes cluster specified by GCLOUD_CLUSTER_NAME
 gcloud container clusters get-credentials \
     "$GCLOUD_CLUSTER_NAME" \
@@ -52,18 +56,18 @@ wait
 
 # Update helm deployment
 start_update main
-helm upgrade "$deployment" clevyr/"$(yq r kubernetes/"$environment"/helm.yaml 'app.framework')"-chart \
+helm upgrade "$deployment" clevyr/"$(yq r "$config_folder"/"$environment"/helm.yaml 'app.framework')"-chart \
     -n "$KUBE_NAMESPACE" \
-    -f kubernetes/"$environment"/helm.yaml \
+    -f "$config_folder"/"$environment"/helm.yaml \
     --set app.image.url="$REPO_URL" \
     --set app.image.tag="$REPO_TAG"
 end_update
 
 # Update redirect deployment (if needed)
-if [[ $(yq r kubernetes/"$environment"/helm.yaml --length 'redirects') -gt 0 ]]; then
+if [[ $(yq r "$config_folder"/"$environment"/helm.yaml --length 'redirects') -gt 0 ]]; then
   start_update redirect
   helm upgrade "$deployment"-redirects clevyr/redirect-helm-chart \
       -n "$KUBE_NAMESPACE" \
-      -f kubernetes/"$environment"/helm.yaml
+      -f "$config_folder"/"$environment"/helm.yaml
   end_update
 fi
