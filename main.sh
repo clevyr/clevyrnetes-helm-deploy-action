@@ -44,6 +44,9 @@ gcloud container clusters get-credentials \
     --region "$GCLOUD_REGION" \
     --project "$project_id"
 
+# Set the kubectl context namespace
+kubectl config set-context --current --namespace="$KUBE_NAMESPACE"
+
 # Set the deployment id to upgrade
 deployment="$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}"
 
@@ -57,17 +60,17 @@ wait
 # Update helm deployment
 start_update main
 helm upgrade "$deployment" clevyr/"$(yq r "$config_folder"/"$environment"/helm.yaml 'app.framework')"-chart \
-    -n "$KUBE_NAMESPACE" \
     -f "$config_folder"/"$environment"/helm.yaml \
     --set app.image.url="$REPO_URL" \
-    --set app.image.tag="$REPO_TAG"
+    --set app.image.tag="$REPO_TAG" \
+    --wait
 end_update
 
 # Update redirect deployment (if needed)
 if [[ $(yq r "$config_folder"/"$environment"/helm.yaml --length 'redirects') -gt 0 ]]; then
   start_update redirect
   helm upgrade "$deployment"-redirects clevyr/redirect-helm-chart \
-      -n "$KUBE_NAMESPACE" \
-      -f "$config_folder"/"$environment"/helm.yaml
+      -f "$config_folder"/"$environment"/helm.yaml \
+      --wait
   end_update
 fi
