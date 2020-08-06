@@ -59,10 +59,10 @@ config_folder="deployment"
 config_folder="${CONFIG_FOLDER:-$config_folder}"
 
 # Select kubernetes cluster specified by GCLOUD_CLUSTER_NAME
-gcloud container clusters get-credentials \
-    "$GCLOUD_CLUSTER_NAME" \
+gcloud container clusters get-credentials  \
+    "$cluster_name" \
     --region "$region" \
-    --project "$project_id"
+    --project "$host_project"
 
 # Set the kubectl context namespace
 kubectl config set-context --current --namespace="$KUBE_NAMESPACE"
