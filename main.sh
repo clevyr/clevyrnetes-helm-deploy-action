@@ -86,6 +86,17 @@ helm upgrade "$deployment" clevyr/"$(yq r "$config_folder"/"$environment"/helm.y
     --wait
 end_update
 
+# Update static site deployment (if needed)
+if [[ "$(yq r "$config_folder"/"$environment"/helm.yaml 'static.enabled')" = 'true' ]]; then
+  start_update static-site
+  helm upgrade "$deployment"-static-site clevyr/static-site-helm-chart \
+      -f "$config_folder"/"$environment"/helm.yaml \
+      --set app.image.url="$docker_repo" \
+      --set static.image.tag="$REPO_TAG" \
+      --wait
+  end_update
+fi
+
 # Update redirect deployment (if needed)
 if [[ $(yq r "$config_folder"/"$environment"/helm.yaml --length 'redirects') -gt 0 ]]; then
   start_update redirect
