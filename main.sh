@@ -84,7 +84,7 @@ _log Begin "clevyr/$framework-chart" upgrade
     --atomic )
 
 # Update static site deployment (if needed)
-if yq r -e "$config_folder/$environment/helm.yaml" static.enabled 2>/dev/null; then
+if yq r -e "$config_folder/$environment/helm.yaml" static.enabled >/dev/null 2>&1; then
   _log Begin clevyr/static-site-helm-chart upgrade
   ( set -x && helm upgrade "$deployment-static-site" clevyr/static-site-helm-chart \
       -f "$config_folder/$environment/helm.yaml" \
