@@ -15,8 +15,9 @@ cluster_info() {
 export IFS=$'\n\t'
 
 # Install yq for parsing helm.yaml
-_log Install yq
-sudo snap install yq &
+_log Start yq install
+sudo snap install yq >/tmp/yq 2>&1 &
+snap_pid="$!"
 
 # Activate gcloud auth using specified by GCLOUD_KEY_FILE
 _log Activate gcloud auth
@@ -68,7 +69,8 @@ helm repo update
 
 # Wait to make sure yq is installed
 _log Wait for yq to finish installing
-wait
+wait "$snap_pid" || { cat /tmp/yq && exit 1; }
+cat /tmp/yq
 
 framework="$(yq r "$config_folder/$environment/helm.yaml" app.framework)"
 
