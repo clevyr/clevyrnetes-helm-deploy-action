@@ -22,7 +22,7 @@ cluster_info() {
 export IFS=$'\n\t'
 
 # Install yq for parsing helm.yaml
-brew install --quiet yq &
+sudo snap install yq &
 
 # Activate gcloud auth using specified by GCLOUD_KEY_FILE
 gcloud auth activate-service-account --key-file - <<< "$GCLOUD_KEY_FILE"
