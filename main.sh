@@ -82,7 +82,7 @@ helm upgrade "$deployment" "clevyr/$(yq r "$config_folder/$environment/helm.yaml
 end_update
 
 # Update static site deployment (if needed)
-if [[ "$(yq r "$config_folder/$environment/helm.yaml" static.enabled)" = 'true' ]]; then
+if yq r -e "$config_folder/$environment/helm.yaml" static.enabled; then
   start_update static-site
   helm upgrade "$deployment-static-site" clevyr/static-site-helm-chart \
       -f "$config_folder/$environment/helm.yaml" \
@@ -93,7 +93,7 @@ if [[ "$(yq r "$config_folder/$environment/helm.yaml" static.enabled)" = 'true' 
 fi
 
 # Update redirect deployment (if needed)
-if [[ $(yq r "$config_folder/$environment/helm.yaml" --length 'redirects') -gt 0 ]]; then
+if [[ "$(yq r "$config_folder/$environment/helm.yaml" --length redirects)" -gt 0 ]]; then
   start_update redirect
   helm upgrade "$deployment-redirects" clevyr/redirect-helm-chart \
       -f "$config_folder/$environment/helm.yaml" \
