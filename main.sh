@@ -12,6 +12,18 @@ cluster_info() {
         | jq -r --arg 'key' "$1" '.[][$key]'
 }
 
+deploy_chart() {
+    local chart="$1" \
+        modifier="${2:+-$2}"
+    _log Begin "$chart" upgrade
+    (set -x && helm upgrade "$deployment$modifier" "$chart" \
+        -f "$config_folder/$environment/helm.yaml" \
+        --set "app.image.url=$docker_repo" \
+        --set "app.image.tag=$REPO_TAG" \
+        --set "static.image.tag=$REPO_TAG" \
+        --atomic )
+}
+
 export IFS=$'\n\t'
 
 # Install yq for parsing helm.yaml
@@ -76,27 +88,14 @@ export PATH="$PATH:$HOME/go/bin"
 framework="$(yq r "$config_folder/$environment/helm.yaml" app.framework)"
 
 # Update helm deployment
-_log Begin "clevyr/$framework-chart" upgrade
-( set -x && helm upgrade "$deployment" "clevyr/$framework-chart" \
-    -f "$config_folder/$environment/helm.yaml" \
-    --set "app.image.url=$docker_repo" \
-    --set "app.image.tag=$REPO_TAG" \
-    --atomic )
+deploy_chart "clevyr/$framework-chart"
 
 # Update static site deployment (if needed)
 if yq r -e "$config_folder/$environment/helm.yaml" static.enabled >/dev/null 2>&1; then
-  _log Begin clevyr/static-site-helm-chart upgrade
-  ( set -x && helm upgrade "$deployment-static-site" clevyr/static-site-helm-chart \
-      -f "$config_folder/$environment/helm.yaml" \
-      --set "app.image.url=$docker_repo" \
-      --set "static.image.tag=$REPO_TAG" \
-      --atomic )
+    deploy_chart clevyr/static-site-helm-chart static-site
 fi
 
 # Update redirect deployment (if needed)
 if [[ "$(yq r "$config_folder/$environment/helm.yaml" --length redirects)" -gt 0 ]]; then
-  _log Begin clevyr/redirect-helm-chart upgrade
-  ( set -x && helm upgrade "$deployment-redirects" clevyr/redirect-helm-chart \
-      -f "$config_folder/$environment/helm.yaml" \
-      --atomic )
+    deploy_chart clevyr/redirect-helm-chart redirects
 fi
