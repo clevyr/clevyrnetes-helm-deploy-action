@@ -24,6 +24,42 @@ deploy_chart() {
         --atomic )
 }
 
+get_deployment_url() {
+    grep -E '::set-output name=app_url::' <<< "$1" | sed -E 's/.*::(.*)/\1/'
+}
+
+create_deployment() {
+    local params
+    params="$(jq -nc \
+        --arg ref "$GITHUB_SHA" \
+        --arg environment "$environment" \
+        '{
+            "ref": $ref,
+            "environment": $environment,
+            "auto_merge": false,
+            "required_contexts": [],
+            "production_environment": $environment | startswith("prod")
+        }')"
+
+    gh api -X POST "/repos/:owner/:repo/deployments" \
+        -H 'Accept: application/vnd.github.ant-man-preview+json' \
+        --input - <<< "$params"
+}
+
+set_deployment_status() {
+    if [[ -n "${deployment_id:-}" ]]; then
+        local state="$1" \
+            environment_url="${2:-}"
+        gh api --silent -X POST "/repos/:owner/:repo/deployments/$deployment_id/statuses" \
+            -H 'Accept: application/vnd.github.ant-man-preview+json' \
+            -H 'Accept: application/vnd.github.flash-preview+json' \
+            -F "state=$state" \
+            -F "log_url=https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA/checks" \
+            -F "environment_url=$environment_url" \
+            -F 'auto_inactive=true'
+    fi
+}
+
 export IFS=$'\n\t'
 
 # Install yq for parsing helm.yaml
@@ -63,6 +99,16 @@ config_folder="${CONFIG_FOLDER:-deployment}"
 # Set the deployment id to upgrade
 deployment="$KUBE_NAMESPACE${DEPLOYMENT_MODIFIER:+-$DEPLOYMENT_MODIFIER}"
 
+if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    # Create the deployment
+    github_deployment="$(create_deployment)"
+
+    # Set the deployment status
+    deployment_id="$(jq '.id' <<< "$github_deployment")"
+    set_deployment_status in_progress
+    trap 'set_deployment_status failure' ERR
+fi
+
 # Select kubernetes cluster specified by GCLOUD_CLUSTER_NAME
 _log Select Kubernetes cluster
 gcloud container clusters get-credentials  \
@@ -88,14 +134,20 @@ export PATH="$PATH:$HOME/go/bin"
 framework="$(yq r "$config_folder/$environment/helm.yaml" app.framework)"
 
 # Update helm deployment
-deploy_chart "clevyr/$framework-chart"
+notes="$(deploy_chart "clevyr/$framework-chart")"
+echo "$notes"
+environment_url="$(get_deployment_url "$notes")"
 
 # Update static site deployment (if needed)
 if yq r -e "$config_folder/$environment/helm.yaml" static.enabled >/dev/null 2>&1; then
-    deploy_chart clevyr/static-site-helm-chart static-site
+    notes="$(deploy_chart clevyr/static-site-helm-chart static-site)"
+    echo "$notes"
+    environment_url="$(get_deployment_url "$notes")"
 fi
 
 # Update redirect deployment (if needed)
 if [[ "$(yq r "$config_folder/$environment/helm.yaml" --length redirects)" -gt 0 ]]; then
     deploy_chart clevyr/redirect-helm-chart redirects
 fi
+
+set_deployment_status success "$environment_url"
