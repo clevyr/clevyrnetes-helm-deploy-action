@@ -150,4 +150,14 @@ if [[ "$(yq r "$config_folder/$environment/helm.yaml" --length redirects)" -gt 0
     deploy_chart clevyr/redirect-helm-chart redirects
 fi
 
+# Update websocket deployment (if needed)
+if [[ -f "$config_folder"/"$environment"/websocket.yaml ]]; then
+  chart="clevyr/laravel-websocket-chart"
+  _log Begin "$chart" upgrade
+  helm upgrade "$deployment"-websocket "$chart" \
+      -f "$config_folder"/"$environment"/websocket.yaml \
+      -f "$config_folder"/"$environment"/helm.yaml \
+      --wait
+fi
+
 set_deployment_status success "$environment_url"
