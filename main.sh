@@ -21,7 +21,7 @@ deploy_chart() {
         --set "app.image.url=$docker_repo" \
         --set "app.image.tag=$REPO_TAG" \
         --set "static.image.tag=$REPO_TAG" \
-        --atomic )
+        --atomic --timeout "${HELM_TIMEOUT:-5m}" )
 }
 
 get_deployment_url() {
