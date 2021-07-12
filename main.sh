@@ -16,12 +16,22 @@ deploy_chart() {
     local chart="$1" \
         modifier="${2:+-$2}"
     _log Begin "$chart" upgrade
-    (set -x && helm upgrade "$deployment$modifier" "$chart" \
-        -f "$config_folder/$environment/helm.yaml" \
-        --set "app.image.url=$docker_repo" \
-        --set "app.image.tag=$REPO_TAG" \
-        --set "static.image.tag=$REPO_TAG" \
-        --atomic --timeout "${HELM_TIMEOUT:-5m}" )
+    if [ -f "$config_folder/$environment/secrets.yaml" ]; then
+        (set -x && helm secrets upgrade "$deployment$modifier" "$chart" \
+            -f "$config_folder/$environment/helm.yaml" \
+            -f "$config_folder/$environment/secrets.yaml" \
+            --set "app.image.url=$docker_repo" \
+            --set "app.image.tag=$REPO_TAG" \
+            --set "static.image.tag=$REPO_TAG" \
+            --atomic --timeout "${HELM_TIMEOUT:-5m}" )
+    else
+        (set -x && helm upgrade "$deployment$modifier" "$chart" \
+            -f "$config_folder/$environment/helm.yaml" \
+            --set "app.image.url=$docker_repo" \
+            --set "app.image.tag=$REPO_TAG" \
+            --set "static.image.tag=$REPO_TAG" \
+            --atomic --timeout "${HELM_TIMEOUT:-5m}" )
+    fi
 }
 
 get_deployment_url() {
@@ -66,6 +76,11 @@ export IFS=$'\n\t'
 _log Start yq install
 GO111MODULE=on go get github.com/mikefarah/yq/v3 >/tmp/yq 2>&1 &
 install_pid="$!"
+
+# Install Mozilla SOPS 
+_log Start SOPS install
+brew install sops 2>&1 &
+sops_install_pid="$!"
 
 # Activate gcloud auth using specified by GCLOUD_KEY_FILE
 _log Activate gcloud auth
@@ -119,6 +134,11 @@ gcloud container clusters get-credentials  \
 # Set the kubectl context namespace
 _log Set namespace to "$KUBE_NAMESPACE"
 kubectl config set-context --current --namespace="$KUBE_NAMESPACE"
+
+# Wait for helm secrets to finish installing
+_log Wait for SOPS to finish installing
+wait "$sops_install_pid"
+helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.1
 
 # Add custom helm repo
 _log Add custom repo
