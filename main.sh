@@ -16,21 +16,16 @@ deploy_chart() {
     local chart="$1" \
         modifier="${2:+-$2}"
     _log Begin "$chart" upgrade
+     flags=( upgrade "$deployment$modifier" "$chart" \
+            -f "$config_folder/$environment/helm.yaml" \
+            --set "app.image.url=$docker_repo" \
+            --set "app.image.tag=$REPO_TAG" \
+            --set "static.image.tag=$REPO_TAG" \
+            --atomic --timeout "${HELM_TIMEOUT:-5m}" )
     if [ -f "$config_folder/$environment/secrets.yaml" ]; then
-        (set -x && helm secrets upgrade "$deployment$modifier" "$chart" \
-            -f "$config_folder/$environment/helm.yaml" \
-            -f "$config_folder/$environment/secrets.yaml" \
-            --set "app.image.url=$docker_repo" \
-            --set "app.image.tag=$REPO_TAG" \
-            --set "static.image.tag=$REPO_TAG" \
-            --atomic --timeout "${HELM_TIMEOUT:-5m}" )
+        (set -x && helm secrets "${flags[@]}" -f "$config_folder/$environment/secrets.yaml" )
     else
-        (set -x && helm upgrade "$deployment$modifier" "$chart" \
-            -f "$config_folder/$environment/helm.yaml" \
-            --set "app.image.url=$docker_repo" \
-            --set "app.image.tag=$REPO_TAG" \
-            --set "static.image.tag=$REPO_TAG" \
-            --atomic --timeout "${HELM_TIMEOUT:-5m}" )
+        (set -x && helm "${flags[@]}" )
     fi
 }
 
