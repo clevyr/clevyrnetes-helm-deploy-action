@@ -23,10 +23,9 @@ deploy_chart() {
             --set "static.image.tag=$REPO_TAG" \
             --atomic --timeout "${HELM_TIMEOUT:-5m}" )
     if [ -f "$config_folder/$environment/secrets.yaml" ]; then
-        (set -x && helm secrets "${flags[@]}" -f "$config_folder/$environment/secrets.yaml" )
-    else
-        (set -x && helm "${flags[@]}" )
+        flags+=( -f "$config_folder/$environment/secrets.yaml" )
     fi
+set -x && helm secrets "${flags[@]}"
 }
 
 get_deployment_url() {
