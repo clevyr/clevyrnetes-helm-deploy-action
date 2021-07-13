@@ -80,6 +80,9 @@ sops_install_pid="$!"
 _log Activate gcloud auth
 gcloud auth activate-service-account --key-file - <<< "$GCLOUD_KEY_FILE"
 
+_log Activate gcloud Application Default Credentials
+gcloud auth application-default login
+
 _log Set local variables
 # Set helm url based on default, or use provided HELM_URL variable
 helm_url="${HELM_URL:-https://helm.clevyr.cloud}"
