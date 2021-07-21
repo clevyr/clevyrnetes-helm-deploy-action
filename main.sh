@@ -145,7 +145,7 @@ wait "$install_pid" || { cat /tmp/yq && exit 1; }
 cat /tmp/yq
 export PATH="$PATH:$HOME/go/bin"
 
-framework="$(yq r "$config_folder/$environment/helm.yaml" app.framework)"
+framework="$(yq e '.app.framework' "$config_folder/$environment/helm.yaml")"
 
 # Update helm deployment
 notes="$(deploy_chart "clevyr/$framework-chart")"
@@ -153,14 +153,14 @@ echo "$notes"
 environment_url="$(get_deployment_url "$notes")"
 
 # Update static site deployment (if needed)
-if yq r -e "$config_folder/$environment/helm.yaml" static.enabled >/dev/null 2>&1; then
+if yq e -e '.static.enabled' "$config_folder/$environment/helm.yaml" >/dev/null 2>&1; then
     notes="$(deploy_chart clevyr/static-site-helm-chart static-site)"
     echo "$notes"
     environment_url="$(get_deployment_url "$notes")"
 fi
 
 # Update redirect deployment (if needed)
-if [[ "$(yq r "$config_folder/$environment/helm.yaml" --length redirects)" -gt 0 ]]; then
+if [[ "$(yq e '.redirects | length' "$config_folder/$environment/helm.yaml")" -gt 0 ]]; then
     deploy_chart clevyr/redirect-helm-chart redirects
 fi
 
