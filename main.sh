@@ -79,6 +79,8 @@ sops_install_pid="$!"
 # Activate gcloud auth using specified by GCLOUD_KEY_FILE
 _log Activate gcloud auth
 gcloud auth activate-service-account --key-file - <<< "$GCLOUD_KEY_FILE"
+echo "$GCLOUD_KEY_FILE" > /tmp/serviceAccount.json
+export GOOGLE_APPLICATION_CREDENTIALS=/tmp/serviceAccount.json
 
 _log Set local variables
 # Set helm url based on default, or use provided HELM_URL variable
