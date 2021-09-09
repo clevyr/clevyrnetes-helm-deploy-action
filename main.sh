@@ -65,7 +65,7 @@ set_deployment_status() {
 }
 
 export IFS=$'\n\t'
-tempBuild="{$TEMP_BUILD:-false}"
+tempBuild="${TEMP_BUILD:-false}"
 
  ### TEMP BUILD SECTION 1
 if [ $tempBuild == "true" ]; then
