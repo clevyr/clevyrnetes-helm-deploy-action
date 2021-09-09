@@ -65,6 +65,27 @@ set_deployment_status() {
 }
 
 export IFS=$'\n\t'
+tempBuild="{$TEMP_BUILD:-false}"
+
+ ### TEMP BUILD SECTION 1
+if [ $tempBuild == "true" ]; then
+    prNum=$(gh pr view --json number,state -q 'select(.state=="OPEN") | .number')
+    _log Verify tempbuilds folder exists
+    if [ ! -d deployment/tempbuilds ]; then
+        _log tempbuilds folder not found! Aborting.
+        exit 0
+    fi
+    _log Verify the target namespace exists
+    appName=$(< deployment/application_name)
+    if ! kubectl get namespace $appName-pr$prNum ; then
+        _log Target namespace does not exist, exiting.
+        exit 0
+    fi
+
+    _log Setting name-based variables
+    KUBE_NAMESPACE=$appName-pr$prNum
+fi
+### END TEMP BUILD SECTION 1
 
 # Install yq for parsing helm.yaml
 _log Start yq install
@@ -146,6 +167,18 @@ _log Wait for yq to finish installing
 wait "$install_pid" || { cat /tmp/yq && exit 1; }
 cat /tmp/yq
 export PATH="$PATH:$HOME/go/bin"
+
+### MORE TEMPBUILD STUFF
+if [ $tempBuild == "true" ]; then
+    _log Copying tempbuild folder
+    mv deployment/tempbuilds deployment/pr$prNum
+
+    _log Pulling previous URL and updating tempbuilds helm.yaml
+    friendlyName=$(helm get values $deployment | yq e .app.ingress.hostname - | sed "s/$(yq e .app.ingress.hostname helm.yaml | sed 's/REPLACE//g')//g")
+    sed -i "s/REPLACE/$friendlyName/g" $config_folder/$environment/helm.yaml
+fi
+
+### END TEMPBUILD SECTION
 
 framework="$(yq e '.app.framework' "$config_folder/$environment/helm.yaml")"
 
