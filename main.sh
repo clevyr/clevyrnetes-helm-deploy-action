@@ -67,26 +67,6 @@ set_deployment_status() {
 export IFS=$'\n\t'
 tempBuild="${TEMP_BUILD:-false}"
 
- ### TEMP BUILD SECTION 1
-if [ $tempBuild == "true" ]; then
-    prNum=$(gh pr view --json number,state -q 'select(.state=="OPEN") | .number')
-    _log Verify tempbuilds folder exists
-    if [ ! -d deployment/tempbuilds ]; then
-        _log tempbuilds folder not found! Aborting.
-        exit 0
-    fi
-    _log Verify the target namespace exists
-    appName=$(< deployment/application_name)
-    if ! kubectl get namespace $appName-pr$prNum ; then
-        _log Target namespace does not exist, exiting.
-        exit 0
-    fi
-
-    _log Setting name-based variables
-    KUBE_NAMESPACE=$appName-pr$prNum
-fi
-### END TEMP BUILD SECTION 1
-
 # Install yq for parsing helm.yaml
 _log Start yq install
 GO111MODULE=on go get github.com/mikefarah/yq/v3 >/tmp/yq 2>&1 &
@@ -122,6 +102,33 @@ region="${GCLOUD_REGION:-$(cluster_info zone)}"
 # Set the default us gcr docker repo unless another is provided
 docker_repo="${REPO_URL:-us.gcr.io/$project_id}"
 
+# Select kubernetes cluster specified by GCLOUD_CLUSTER_NAME
+_log Select Kubernetes cluster
+gcloud container clusters get-credentials  \
+    "$cluster_name" \
+    --region "$region" \
+    --project "$host_project"
+
+### TEMP BUILD SECTION 1
+if [ $tempBuild == "true" ]; then
+    prNum=$(gh pr view --json number,state -q 'select(.state=="OPEN") | .number')
+    _log Verify tempbuilds folder exists
+    if [ ! -d deployment/tempbuilds ]; then
+        _log tempbuilds folder not found! Aborting.
+        exit 0
+    fi
+    _log Verify the target namespace exists
+    appName=$(< deployment/application_name)
+    if ! kubectl get namespace $appName-pr$prNum ; then
+        _log Target namespace does not exist, exiting.
+        exit 0
+    fi
+
+    _log Setting name-based variables
+    KUBE_NAMESPACE=$appName-pr$prNum
+fi
+### END TEMP BUILD SECTION 1
+
 # Set the environment label based on the last id in the KUBE_NAMESPACE, or use the provided ENV_LABEL variable
 environment="${ENV_LABEL:-${KUBE_NAMESPACE##*-}}"
 
@@ -140,13 +147,6 @@ if [[ -n "${GITHUB_TOKEN:-}" ]]; then
     set_deployment_status in_progress
     trap 'set_deployment_status failure' ERR
 fi
-
-# Select kubernetes cluster specified by GCLOUD_CLUSTER_NAME
-_log Select Kubernetes cluster
-gcloud container clusters get-credentials  \
-    "$cluster_name" \
-    --region "$region" \
-    --project "$host_project"
 
 # Set the kubectl context namespace
 _log Set namespace to "$KUBE_NAMESPACE"
@@ -171,10 +171,10 @@ export PATH="$PATH:$HOME/go/bin"
 ### MORE TEMPBUILD STUFF
 if [ $tempBuild == "true" ]; then
     _log Copying tempbuild folder
-    mv deployment/tempbuilds deployment/pr$prNum
+    mv $config_folder//tempbuilds $config_folder//$environment
 
     _log Pulling previous URL and updating tempbuilds helm.yaml
-    friendlyName=$(helm get values $deployment | yq e .app.ingress.hostname - | sed "s/$(yq e .app.ingress.hostname helm.yaml | sed 's/REPLACE//g')//g")
+    friendlyName=$(helm get values $deployment | yq e .app.ingress.hostname - | sed "s/$(yq e .app.ingress.hostname $config_folder/$environment/helm.yaml | sed 's/REPLACE//g')//g")
     sed -i "s/REPLACE/$friendlyName/g" $config_folder/$environment/helm.yaml
 fi
 
