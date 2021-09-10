@@ -7,6 +7,12 @@ _log() {
     printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2;
 }
 
+abort_temp_build() {
+    _log "$@"
+    echo '::set-output name=skipped::true'
+    exit 0
+}
+
 cluster_info() {
     gcloud container --project "$host_project" clusters list --format json \
         | jq -r --arg 'key' "$1" '.[][$key]'
@@ -111,19 +117,18 @@ gcloud container clusters get-credentials  \
 
 ### TEMP BUILD SECTION 1
 if [ $tempBuild == "true" ]; then
-    prNum=$(gh pr view --json number,state -q 'select(.state=="OPEN") | .number')
+    prNum="$(gh pr view --json number,state -q 'select(.state=="OPEN") | .number' || true)"
+    if [ -z "${prNum:-}" ]; then
+        abort_temp_build 'Not operating on a branch with a PR, exiting.'
+    fi
     _log Verify tempbuilds folder exists
     if [ ! -d deployment/tempbuilds ]; then
-        _log tempbuilds folder not found! Aborting.
-        echo "::set-output name=skipped::true"
-        exit 0
+        abort_temp_build 'tempbuilds folder not found, exiting.'
     fi
     _log Verify the target namespace exists
     appName=$(< deployment/application_name)
     if ! kubectl get namespace $appName-pr$prNum ; then
-        _log Target namespace does not exist, exiting.
-        echo "::set-output name=skipped::true"
-        exit 0
+        abort_temp_build 'Target namespace does not exist, exiting.'
     fi
 
     _log Setting name-based variables
