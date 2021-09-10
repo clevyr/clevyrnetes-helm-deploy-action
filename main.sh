@@ -116,14 +116,14 @@ if [ $tempBuild == "true" ]; then
     if [ ! -d deployment/tempbuilds ]; then
         _log tempbuilds folder not found! Aborting.
         echo "::set-output name=skipped::true"
-        exit 1
+        exit 0
     fi
     _log Verify the target namespace exists
     appName=$(< deployment/application_name)
     if ! kubectl get namespace $appName-pr$prNum ; then
         _log Target namespace does not exist, exiting.
         echo "::set-output name=skipped::true"
-        exit 1
+        exit 0
     fi
 
     _log Setting name-based variables
