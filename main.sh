@@ -111,10 +111,17 @@ gcloud container clusters get-credentials  \
 
 ### TEMP BUILD SECTION 1
 if [ $tempBuild == "true" ]; then
-    prNum=$(gh pr view --json number,state -q 'select(.state=="OPEN") | .number')
+    prNum=0
+    if ( gh pr view --json number,state -q 'select(.state=="OPEN") | .number' > /dev/null) ; then
+        prNum=$(gh pr view --json number,state -q 'select(.state=="OPEN") | .number')
+    else
+        _log Not operating on a branch with a PR, exiting.
+        echo "::set-output name=skipped::true"
+        exit 1
+    fi
     _log Verify tempbuilds folder exists
     if [ ! -d deployment/tempbuilds ]; then
-        _log tempbuilds folder not found! Aborting.
+        _log tempbuilds folder not found, exiting.
         echo "::set-output name=skipped::true"
         exit 1
     fi
