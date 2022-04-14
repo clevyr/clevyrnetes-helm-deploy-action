@@ -73,11 +73,6 @@ set_deployment_status() {
 export IFS=$'\n\t'
 tempBuild="${TEMP_BUILD:-false}"
 
-# Install yq for parsing helm.yaml
-_log Start yq install
-GO111MODULE=on go get github.com/mikefarah/yq/v3 >/tmp/yq 2>&1 &
-install_pid="$!"
-
 # Install Mozilla SOPS 
 _log Start SOPS install
 brew install sops 2>&1 &
@@ -169,11 +164,10 @@ _log Add custom repo
 helm repo add clevyr "$helm_url"
 helm repo update
 
-# Wait to make sure yq is installed
-_log Wait for yq to finish installing
-wait "$install_pid" || { cat /tmp/yq && exit 1; }
-cat /tmp/yq
+# Install yq for parsing helm.yaml
+_log Install yq
 export PATH="$PATH:$HOME/go/bin"
+go install github.com/mikefarah/yq/v3@latest
 
 ### MORE TEMPBUILD STUFF
 if [ $tempBuild == "true" ]; then
