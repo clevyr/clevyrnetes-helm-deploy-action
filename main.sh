@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 _log() {
     local IFS=$' \n\t'
