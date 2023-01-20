@@ -85,6 +85,12 @@ gcloud auth activate-service-account --key-file - <<< "$GCLOUD_KEY_FILE"
 echo "$GCLOUD_KEY_FILE" > /tmp/serviceAccount.json
 export GOOGLE_APPLICATION_CREDENTIALS=/tmp/serviceAccount.json
 
+# Install gke auth plugin
+echo "Installing GKE auth plugin..."
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+sudo apt-get update && sudo apt-get install google-cloud-sdk-gke-gcloud-auth-plugin
+
 _log Set local variables
 # Set helm url based on default, or use provided HELM_URL variable
 helm_url="${HELM_URL:-https://helm.clevyr.cloud}"
