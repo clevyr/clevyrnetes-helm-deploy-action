@@ -10,7 +10,7 @@ _log() {
 
 abort_temp_build() {
     _log "$@"
-    echo '::set-output name=skipped::true'
+    echo 'skipped=true'
     exit 0
 }
 
@@ -36,7 +36,7 @@ set -x && helm secrets "${flags[@]}"
 }
 
 get_deployment_url() {
-    grep -E '::set-output name=app_url::' <<< "$1" | sed -E 's/.*::(.*)/\1/'
+    grep -E 'app_url=' <<< "$1" | sed -E 's/.*::(.*)/\1/'
 }
 
 create_deployment() {
