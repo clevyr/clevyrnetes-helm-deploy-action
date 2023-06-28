@@ -3,6 +3,10 @@
 set -euo pipefail
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
+if [[ "${RUNNER_DEBUG:-}" == "1" ]]; then
+    set -x
+fi
+
 _log() {
     local IFS=$' \n\t'
     printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2;
