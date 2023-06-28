@@ -58,7 +58,7 @@ create_deployment() {
 
     gh api -X POST "/repos/:owner/:repo/deployments" \
         -H 'Accept: application/vnd.github.ant-man-preview+json' \
-        --input - <<< "$params"
+        --input - <<< "$params" || true
 }
 
 set_deployment_status() {
@@ -71,7 +71,7 @@ set_deployment_status() {
             -F "state=$state" \
             -F "log_url=https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA/checks" \
             -F "environment_url=$environment_url" \
-            -F 'auto_inactive=true'
+            -F 'auto_inactive=true' || true
     fi
 }
 
