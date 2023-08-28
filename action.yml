@@ -6,6 +6,7 @@ branding:
 runs:
   using: composite
   steps:
+    - uses: frenck/action-setup-yq@v1
     - uses: mdgreenwald/mozilla-sops-action@v1.4.1
     - shell: bash
       env:

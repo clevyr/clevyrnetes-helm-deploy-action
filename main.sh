@@ -168,11 +168,6 @@ _log Add custom repo
 helm repo add clevyr "$helm_url"
 helm repo update
 
-# Install yq for parsing helm.yaml
-_log Install yq
-export PATH="$PATH:$HOME/go/bin"
-go install github.com/mikefarah/yq/v3@latest
-
 ### MORE TEMPBUILD STUFF
 if [ $tempBuild == "true" ]; then
     _log Copying tempbuild folder
