@@ -23,6 +23,11 @@ runs:
     - name: Set up Helm secrets
       shell: bash
       run: helm plugin install https://github.com/jkroepke/helm-secrets --version=v4.5.0
+    - name: Add Helm repo
+      shell: bash
+      run: |
+        helm repo add clevyr "${HELM_URL:-https://helm.clevyr.cloud}"
+        helm repo update clevyr
     - name: Main script
       shell: bash
       env:

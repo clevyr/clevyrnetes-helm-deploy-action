@@ -73,8 +73,6 @@ export IFS=$'\n\t'
 tempBuild="${TEMP_BUILD:-false}"
 
 _log Set local variables
-# Set helm url based on default, or use provided HELM_URL variable
-helm_url="${HELM_URL:-https://helm.clevyr.cloud}"
 
 # Set the project id based on the key file provided, or use the provided project id
 project_id="${GCLOUD_GKE_PROJECT:-$(jq -r .project_id <<< "$GCLOUD_KEY_FILE")}"
@@ -125,11 +123,6 @@ fi
 # Set the kubectl context namespace
 _log Set namespace to "$KUBE_NAMESPACE"
 kubectl config set-context --current --namespace="$KUBE_NAMESPACE"
-
-# Add custom helm repo
-_log Add custom repo
-helm repo add clevyr "$helm_url"
-helm repo update
 
 ### MORE TEMPBUILD STUFF
 if [ "$tempBuild" == "true" ]; then
