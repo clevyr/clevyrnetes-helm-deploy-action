@@ -128,7 +128,7 @@ _log Set namespace to "$KUBE_NAMESPACE"
 kubectl config set-context --current --namespace="$KUBE_NAMESPACE"
 
 # Install helm secrets
-helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.1
+helm plugin install https://github.com/jkroepke/helm-secrets --version v3.15.0
 
 # Add custom helm repo
 _log Add custom repo
