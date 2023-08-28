@@ -31,7 +31,7 @@ deploy_chart() {
     if [ -f "$config_folder/$environment/secrets.yaml" ]; then
         flags+=( -f "$config_folder/$environment/secrets.yaml" )
     fi
-set -x && helm secrets "${flags[@]}"
+    set -x && helm secrets "${flags[@]}"
 }
 
 get_deployment_url() {
@@ -84,7 +84,7 @@ project_id="${GCLOUD_GKE_PROJECT:-$(jq -r .project_id <<< "$GCLOUD_KEY_FILE")}"
 docker_repo="${REPO_URL:-us.gcr.io/$project_id}"
 
 ### TEMP BUILD SECTION 1
-if [ $tempBuild == "true" ]; then
+if [ "$tempBuild" == "true" ]; then
     prNum="$(gh pr view --json number,state -q 'select(.state=="OPEN") | .number' || true)"
     if [ -z "${prNum:-}" ]; then
         abort_temp_build 'Not operating on a branch with a PR, exiting.'
@@ -95,7 +95,7 @@ if [ $tempBuild == "true" ]; then
     fi
     _log Verify the target namespace exists
     appName=$(< deployment/application_name)
-    if ! kubectl get namespace $appName-pr$prNum ; then
+    if ! kubectl get namespace "$appName-pr$prNum" ; then
         abort_temp_build 'Target namespace does not exist, exiting.'
     fi
 
@@ -136,13 +136,13 @@ helm repo add clevyr "$helm_url"
 helm repo update
 
 ### MORE TEMPBUILD STUFF
-if [ $tempBuild == "true" ]; then
+if [ "$tempBuild" == "true" ]; then
     _log Copying tempbuild folder
-    mv $config_folder//tempbuilds $config_folder//$environment
+    mv "$config_folder//tempbuilds" "$config_folder//$environment"
 
     _log Pulling previous URL and updating tempbuilds helm.yaml
-    friendlyName=$(helm get values $deployment | yq e .app.ingress.hostname - | sed "s/$(yq e .app.ingress.hostname $config_folder/$environment/helm.yaml | sed 's/REPLACE//g')//g")
-    sed -i "s/REPLACE/$friendlyName/g" $config_folder/$environment/helm.yaml
+    friendlyName=$(helm get values "$deployment" | yq e .app.ingress.hostname - | sed "s/$(yq e .app.ingress.hostname "$config_folder/$environment/helm.yaml" | sed 's/REPLACE//g')//g")
+    sed -i "s/REPLACE/$friendlyName/g" "$config_folder/$environment/helm.yaml"
 fi
 
 ### END TEMPBUILD SECTION
