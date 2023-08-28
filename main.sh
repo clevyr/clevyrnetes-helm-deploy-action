@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 if [[ "${RUNNER_DEBUG:-}" == "1" ]]; then
     set -x
