@@ -6,6 +6,7 @@ branding:
 runs:
   using: composite
   steps:
+    - uses: mdgreenwald/mozilla-sops-action@v1.4.1
     - shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}

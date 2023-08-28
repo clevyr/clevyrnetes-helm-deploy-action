@@ -78,11 +78,6 @@ set_deployment_status() {
 export IFS=$'\n\t'
 tempBuild="${TEMP_BUILD:-false}"
 
-# Install Mozilla SOPS 
-_log Start SOPS install
-brew install sops 2>&1 &
-sops_install_pid="$!"
-
 # Activate gcloud auth using specified by GCLOUD_KEY_FILE
 _log Activate gcloud auth
 gcloud auth activate-service-account --key-file - <<< "$GCLOUD_KEY_FILE"
@@ -165,9 +160,7 @@ fi
 _log Set namespace to "$KUBE_NAMESPACE"
 kubectl config set-context --current --namespace="$KUBE_NAMESPACE"
 
-# Wait for helm secrets to finish installing
-_log Wait for SOPS to finish installing
-wait "$sops_install_pid"
+# Install helm secrets
 helm plugin install https://github.com/jkroepke/helm-secrets --version v3.8.1
 
 # Add custom helm repo
