@@ -18,11 +18,6 @@ abort_temp_build() {
     exit 0
 }
 
-cluster_info() {
-    gcloud container --project "$host_project" clusters list --format json \
-        | jq -r --arg 'key' "$1" '.[][$key]'
-}
-
 deploy_chart() {
     local chart="$1" \
         modifier="${2:+-$2}"
@@ -78,43 +73,15 @@ set_deployment_status() {
 export IFS=$'\n\t'
 tempBuild="${TEMP_BUILD:-false}"
 
-# Activate gcloud auth using specified by GCLOUD_KEY_FILE
-_log Activate gcloud auth
-gcloud auth activate-service-account --key-file - <<< "$GCLOUD_KEY_FILE"
-echo "$GCLOUD_KEY_FILE" > /tmp/serviceAccount.json
-export GOOGLE_APPLICATION_CREDENTIALS=/tmp/serviceAccount.json
-
-# Install gke auth plugin
-echo "Installing GKE auth plugin..."
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-sudo apt-get update && sudo apt-get install google-cloud-sdk-gke-gcloud-auth-plugin
-
 _log Set local variables
 # Set helm url based on default, or use provided HELM_URL variable
 helm_url="${HELM_URL:-https://helm.clevyr.cloud}"
 
-# Set the host project based on the value provided or based on the default
-host_project="${HOST_PROJECT:-momma-motus}"
-
 # Set the project id based on the key file provided, or use the provided project id
 project_id="${GCLOUD_GKE_PROJECT:-$(jq -r .project_id <<< "$GCLOUD_KEY_FILE")}"
 
-# Set the cluster name based on the key file provided unless it is provided
-cluster_name="${GCLOUD_CLUSTER_NAME:-$(cluster_info name)}"
-
-# Set the region tag unless it is provided
-region="${GCLOUD_REGION:-$(cluster_info zone)}"
-
 # Set the default us gcr docker repo unless another is provided
 docker_repo="${REPO_URL:-us.gcr.io/$project_id}"
-
-# Select kubernetes cluster specified by GCLOUD_CLUSTER_NAME
-_log Select Kubernetes cluster
-gcloud container clusters get-credentials  \
-    "$cluster_name" \
-    --region "$region" \
-    --project "$host_project"
 
 ### TEMP BUILD SECTION 1
 if [ $tempBuild == "true" ]; then
