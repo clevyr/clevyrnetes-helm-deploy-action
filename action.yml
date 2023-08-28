@@ -17,8 +17,6 @@ runs:
         project_id: ${{ env.HOST_PROJECT || 'momma-motus' }}
         location: us-central1
 
-    - name: Set up yq
-      uses: frenck/action-setup-yq@v1
     - name: Set up SOPS
       uses: mdgreenwald/mozilla-sops-action@v1.4.1
     - name: Set up Helm secrets
