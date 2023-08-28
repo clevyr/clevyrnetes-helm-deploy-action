@@ -5,7 +5,7 @@
   ],
   "regexManagers": [
     {
-      "fileMatch": ["\\.sh$"],
+      "fileMatch": ["\\.sh$", "^action.ya?ml$"],
       "matchStrings": [
         "helm plugin install https:\\/\\/github.com\\/(?<depName>.*) --version[= ](?<currentValue>.*)"
       ],

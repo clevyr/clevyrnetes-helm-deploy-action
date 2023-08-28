@@ -126,9 +126,6 @@ fi
 _log Set namespace to "$KUBE_NAMESPACE"
 kubectl config set-context --current --namespace="$KUBE_NAMESPACE"
 
-# Install helm secrets
-helm plugin install https://github.com/jkroepke/helm-secrets --version v4.5.0
-
 # Add custom helm repo
 _log Add custom repo
 helm repo add clevyr "$helm_url"

@@ -20,6 +20,9 @@ runs:
         cluster_name: ${{ env.GCLOUD_CLUSTER_NAME || 'clevyrnetes' }}
         project_id: ${{ env.HOST_PROJECT || 'momma-motus' }}
         location: us-central1
+    - name: Set up Helm secrets
+      shell: bash
+      run: helm plugin install https://github.com/jkroepke/helm-secrets --version=v4.5.0
     - name: Main script
       shell: bash
       env:
