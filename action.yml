@@ -1,9 +1,12 @@
 name: "Clevyrnetes Helm Deploy Action"
 description: "Updates a Clevyrnetes Helm Chart"
-author: "Keith"
-runs:
-  using: "node12"
-  main: "main.js"
 branding:
   icon: upload-cloud
   color: green
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: "$ACTION_PATH/main.sh"
