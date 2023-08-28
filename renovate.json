@@ -2,5 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>clevyr/renovate-config"
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["\\.sh$"],
+      "matchStrings": [
+        "helm plugin install https:\\/\\/github.com\\/(?<depName>.*) --version[= ](?<currentValue>.*)"
+      ],
+      "datasourceTemplate": "github-releases"
+    }
   ]
 }
