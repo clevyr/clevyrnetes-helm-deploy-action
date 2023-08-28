@@ -6,17 +6,22 @@ branding:
 runs:
   using: composite
   steps:
-    - uses: frenck/action-setup-yq@v1
-    - uses: mdgreenwald/mozilla-sops-action@v1.4.1
-    - uses: google-github-actions/auth@v1
+    - name: Set up yq
+      uses: frenck/action-setup-yq@v1
+    - name: Set up SOPS
+      uses: mdgreenwald/mozilla-sops-action@v1.4.1
+    - name: GCloud auth
+      uses: google-github-actions/auth@v1
       with:
         credentials_json: ${{ env.GCLOUD_KEY_FILE }}
-    - uses: google-github-actions/get-gke-credentials@v1
+    - name: GKE auth
+      uses: google-github-actions/get-gke-credentials@v1
       with:
         cluster_name: ${{ env.GCLOUD_CLUSTER_NAME || 'clevyrnetes' }}
         project_id: ${{ env.HOST_PROJECT || 'momma-motus' }}
         location: us-central1
-    - shell: bash
+    - name: Main script
+      shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
       run: "$ACTION_PATH/main.sh"
