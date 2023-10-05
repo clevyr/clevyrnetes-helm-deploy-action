@@ -17,6 +17,14 @@ runs:
         project_id: ${{ env.HOST_PROJECT || 'momma-motus' }}
         location: ${{ env.GKE_LOCATION || 'us-central1' }}
 
+    - name: Install Helm v3.12.3
+      shell: bash
+      run: |
+        curl -sf https://get.helm.sh/helm-v3.12.3-linux-amd64.tar.gz | \
+          tar -xzvf - --strip-components=1 \
+          linux-amd64/helm
+        mv helm "$(which helm)"
+
     - name: Set up SOPS
       uses: mdgreenwald/mozilla-sops-action@v1.4.1
     - name: Set up Helm secrets
