@@ -26,7 +26,7 @@ runs:
         mv helm "$(which helm)"
 
     - name: Set up SOPS
-      uses: mdgreenwald/mozilla-sops-action@v1.4.1
+      uses: mdgreenwald/mozilla-sops-action@v1.5.0
     - name: Set up Helm secrets
       shell: bash
       run: helm plugin install https://github.com/jkroepke/helm-secrets --version=v4.5.0
