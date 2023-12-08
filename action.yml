@@ -11,7 +11,7 @@ runs:
       with:
         credentials_json: ${{ env.GCLOUD_KEY_FILE }}
     - name: GKE auth
-      uses: google-github-actions/get-gke-credentials@v1
+      uses: google-github-actions/get-gke-credentials@v2
       with:
         cluster_name: ${{ env.GCLOUD_CLUSTER_NAME || 'clevyrnetes' }}
         project_id: ${{ env.HOST_PROJECT || 'momma-motus' }}
